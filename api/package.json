@@ -1,0 +1,35 @@
+{
+  "name": "api",
+  "module": "src/server.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "start": "bun run src/server.ts",
+    "test": "bun test --coverage src/application src/domain",
+    "test:integration": "./scripts/test-integration.sh",
+    "test:all": "bun run test && bun run test:integration",
+    "test:watch": "bun test --watch",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.3.5",
+    "drizzle-kit": "^0.31.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/rate-limit": "^10.3.0",
+    "better-auth": "^1.5.4",
+    "drizzle-orm": "^0.45.1",
+    "fastify": "^5.8.2",
+    "postgres": "^3.4.8",
+    "zod": "^4.3.6"
+  }
+}

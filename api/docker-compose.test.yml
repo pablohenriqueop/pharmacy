@@ -1,0 +1,12 @@
+services:
+  postgres-test:
+    image: postgres:17-alpine
+    container_name: pharmacy_db_test
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: pharmacy_test
+      POSTGRES_PASSWORD: pharmacy_test
+      POSTGRES_DB: pharmacy_test
+    tmpfs:
+      - /var/lib/postgresql/data
