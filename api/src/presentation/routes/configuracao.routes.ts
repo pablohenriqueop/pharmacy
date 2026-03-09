@@ -3,7 +3,7 @@ import { z } from 'zod/v4'
 import { BuscarConfiguracaoUseCase } from '@/application/use-cases/configuracao/BuscarConfiguracaoUseCase.ts'
 import { AtualizarConfiguracaoUseCase } from '@/application/use-cases/configuracao/AtualizarConfiguracaoUseCase.ts'
 import { DrizzleConfiguracaoRepository } from '@/infrastructure/repositories/DrizzleConfiguracaoRepository.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission } from '@/presentation/middleware/authMiddleware.ts'
 import { auditService } from '@/infrastructure/services/AuditService.ts'
 
 const repo = new DrizzleConfiguracaoRepository()

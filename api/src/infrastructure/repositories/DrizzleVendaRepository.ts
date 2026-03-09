@@ -1,9 +1,11 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql, desc } from 'drizzle-orm'
 import { db } from '@/infrastructure/db/connection.ts'
 import { vendas, itensVenda } from '@/infrastructure/db/schema.ts'
 import { Venda } from '@/domain/entities/Venda.ts'
 import type { CriarVendaInput, FormaPagamento, VendaStatus, ItemVendaProps } from '@/domain/entities/Venda.ts'
 import type { IVendaRepository } from '@/application/repositories/IVendaRepository.ts'
+import type { PaginacaoParams, ResultadoPaginado } from '@/domain/entities/Paginacao.ts'
+import { PAGINACAO_PADRAO } from '@/domain/entities/Paginacao.ts'
 
 function toItemProps(row: typeof itensVenda.$inferSelect): ItemVendaProps {
   return {
@@ -79,14 +81,24 @@ export class DrizzleVendaRepository implements IVendaRepository {
     return toVenda(vendaRow, itensRows.map(toItemProps))
   }
 
-  async listarPorCaixa(tenantId: string, caixaId: string): Promise<Venda[]> {
+  async listarPorCaixa(tenantId: string, caixaId: string, paginacao?: PaginacaoParams): Promise<ResultadoPaginado<Venda>> {
+    const { pagina, porPagina } = paginacao ?? PAGINACAO_PADRAO
+
     const vendaRows = await db
-      .select()
+      .select({
+        data: vendas,
+        total: sql<number>`COUNT(*) OVER()`.as('total'),
+      })
       .from(vendas)
       .where(and(eq(vendas.tenantId, tenantId), eq(vendas.caixaId, caixaId)))
+      .orderBy(desc(vendas.createdAt))
+      .limit(porPagina)
+      .offset((pagina - 1) * porPagina)
 
-    return Promise.all(
-      vendaRows.map(async vendaRow => {
+    const total = vendaRows[0]?.total ?? 0
+
+    const dados = await Promise.all(
+      vendaRows.map(async ({ data: vendaRow }) => {
         const itensRows = await db
           .select()
           .from(itensVenda)
@@ -95,6 +107,14 @@ export class DrizzleVendaRepository implements IVendaRepository {
         return toVenda(vendaRow, itensRows.map(toItemProps))
       })
     )
+
+    return {
+      dados,
+      total,
+      pagina,
+      porPagina,
+      totalPaginas: Math.ceil(total / porPagina),
+    }
   }
 
   async cancelar(tenantId: string, id: string): Promise<Venda | null> {

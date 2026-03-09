@@ -7,7 +7,7 @@ import { BuscarNfcePorVendaUseCase } from '@/application/use-cases/nfce/BuscarNf
 import { DrizzleNfceRepository } from '@/infrastructure/repositories/DrizzleNfceRepository.ts'
 import { DrizzleVendaRepository } from '@/infrastructure/repositories/DrizzleVendaRepository.ts'
 import { StubNfceService } from '@/infrastructure/services/StubNfceService.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission } from '@/presentation/middleware/authMiddleware.ts'
 import { auditService } from '@/infrastructure/services/AuditService.ts'
 
 const nfceRepo = new DrizzleNfceRepository()

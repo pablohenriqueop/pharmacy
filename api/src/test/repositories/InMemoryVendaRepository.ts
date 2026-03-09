@@ -1,6 +1,8 @@
 import { Venda } from '@/domain/entities/Venda.ts'
 import type { CriarVendaInput, FormaPagamento, ItemVendaProps } from '@/domain/entities/Venda.ts'
 import type { IVendaRepository } from '@/application/repositories/IVendaRepository.ts'
+import type { PaginacaoParams, ResultadoPaginado } from '@/domain/entities/Paginacao.ts'
+import { PAGINACAO_PADRAO } from '@/domain/entities/Paginacao.ts'
 
 export class InMemoryVendaRepository implements IVendaRepository {
   public items: Venda[] = []
@@ -40,8 +42,19 @@ export class InMemoryVendaRepository implements IVendaRepository {
     return this.items.find(v => v.tenantId === tenantId && v.id === id) ?? null
   }
 
-  async listarPorCaixa(tenantId: string, caixaId: string): Promise<Venda[]> {
-    return this.items.filter(v => v.tenantId === tenantId && v.caixaId === caixaId)
+  async listarPorCaixa(tenantId: string, caixaId: string, paginacao?: PaginacaoParams): Promise<ResultadoPaginado<Venda>> {
+    const { pagina, porPagina } = paginacao ?? PAGINACAO_PADRAO
+    const todos = this.items.filter(v => v.tenantId === tenantId && v.caixaId === caixaId)
+    const total = todos.length
+    const dados = todos.slice((pagina - 1) * porPagina, pagina * porPagina)
+
+    return {
+      dados,
+      total,
+      pagina,
+      porPagina,
+      totalPaginas: Math.ceil(total / porPagina),
+    }
   }
 
   async cancelar(tenantId: string, id: string): Promise<Venda | null> {

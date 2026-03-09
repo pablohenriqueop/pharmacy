@@ -4,7 +4,7 @@ import { RelatorioVendasUseCase } from '@/application/use-cases/relatorio/Relato
 import { ProdutosMaisVendidosUseCase } from '@/application/use-cases/relatorio/ProdutosMaisVendidosUseCase.ts'
 import { AlertaEstoqueUseCase } from '@/application/use-cases/relatorio/AlertaEstoqueUseCase.ts'
 import { DrizzleRelatorioRepository } from '@/infrastructure/repositories/DrizzleRelatorioRepository.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission } from '@/presentation/middleware/authMiddleware.ts'
 
 const repo = new DrizzleRelatorioRepository()
 const relatorioVendas = new RelatorioVendasUseCase(repo)

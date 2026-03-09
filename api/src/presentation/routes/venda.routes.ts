@@ -7,8 +7,9 @@ import { ListarVendasUseCase } from '@/application/use-cases/venda/ListarVendasU
 import { DrizzleVendaRepository } from '@/infrastructure/repositories/DrizzleVendaRepository.ts'
 import { DrizzleProdutoRepository } from '@/infrastructure/repositories/DrizzleProdutoRepository.ts'
 import { DrizzleCaixaRepository } from '@/infrastructure/repositories/DrizzleCaixaRepository.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission, requirePin } from '@/presentation/middleware/authMiddleware.ts'
 import { auditService } from '@/infrastructure/services/AuditService.ts'
+import { paginacaoSchema } from '@/presentation/schemas/paginacao.ts'
 
 const vendaRepo = new DrizzleVendaRepository()
 const produtoRepo = new DrizzleProdutoRepository()
@@ -53,8 +54,9 @@ export async function vendaRoutes(app: FastifyInstance) {
 
   app.get('/vendas/caixa/:caixaId', { preHandler: [requirePermission({ venda: ['read'] })] }, async (request, reply) => {
     const { caixaId } = request.params as { caixaId: string }
-    const vendas = await listarVendas.execute(request.tenantId, caixaId)
-    return reply.send(vendas.map(v => v.props))
+    const { pagina, porPagina } = paginacaoSchema.parse(request.query)
+    const resultado = await listarVendas.execute(request.tenantId, caixaId, { pagina, porPagina })
+    return reply.send({ ...resultado, dados: resultado.dados.map(v => v.props) })
   })
 
   app.get('/vendas/:id', { preHandler: [requirePermission({ venda: ['read'] })] }, async (request, reply) => {
@@ -63,7 +65,7 @@ export async function vendaRoutes(app: FastifyInstance) {
     return reply.send(venda.props)
   })
 
-  app.post('/vendas/:id/cancelar', { preHandler: [requirePermission({ venda: ['cancel'] })] }, async (request, reply) => {
+  app.post('/vendas/:id/cancelar', { preHandler: [requirePermission({ venda: ['cancel'] }), requirePin()] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const venda = await cancelarVenda.execute(request.tenantId, id)
 

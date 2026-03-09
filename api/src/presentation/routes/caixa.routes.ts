@@ -4,7 +4,7 @@ import { AbrirCaixaUseCase } from '@/application/use-cases/caixa/AbrirCaixaUseCa
 import { FecharCaixaUseCase } from '@/application/use-cases/caixa/FecharCaixaUseCase.ts'
 import { BuscarCaixaAbertoUseCase } from '@/application/use-cases/caixa/BuscarCaixaAbertoUseCase.ts'
 import { DrizzleCaixaRepository } from '@/infrastructure/repositories/DrizzleCaixaRepository.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission } from '@/presentation/middleware/authMiddleware.ts'
 import { auditService } from '@/infrastructure/services/AuditService.ts'
 
 const repo = new DrizzleCaixaRepository()

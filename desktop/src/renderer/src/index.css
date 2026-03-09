@@ -1,42 +1,65 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0095DA;
+  --color-primary: #0066B3;
   --color-primary-foreground: #FFFFFF;
-  --color-secondary: #F0F4F8;
+  --color-secondary: #E8EDF2;
   --color-secondary-foreground: #1A2332;
-  --color-background: #FFFFFF;
+  --color-background: #F0F2F5;
   --color-foreground: #1A2332;
-  --color-muted: #F5F7FA;
-  --color-muted-foreground: #64748B;
-  --color-border: #E2E8F0;
-  --color-ring: #0095DA;
-  --color-success: #16A34A;
-  --color-error: #DC2626;
-  --color-warning: #F59E0B;
+  --color-muted: #E8ECF0;
+  --color-muted-foreground: #5A6577;
+  --color-border: #D1D9E0;
+  --color-ring: #0066B3;
+  --color-success: #0F8A3F;
+  --color-error: #C62828;
+  --color-warning: #E67E00;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-  --shadow-md: 0 2px 8px -1px rgb(0 0 0 / 0.06), 0 1px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 4px 16px -2px rgb(0 0 0 / 0.08), 0 2px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 6px -1px rgb(0 0 0 / 0.08), 0 1px 3px -1px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 4px 12px -2px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06);
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 * {
   border-color: var(--color-border);
 }
 
+button, [role="button"], a, select, summary, [type="button"], [type="submit"], [type="reset"] {
+  cursor: pointer;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar mais discreta (estilo PDV) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
 }

@@ -4,6 +4,7 @@ export interface ProdutoProps {
   nome: string
   codigoBarras: string | null
   categoria: string | null
+  laboratorio: string | null
   precoVenda: number
   precoCusto: number | null
   unidade: string
@@ -19,6 +20,7 @@ export interface CriarProdutoInput {
   nome: string
   codigoBarras?: string | null
   categoria?: string | null
+  laboratorio?: string | null
   precoVenda: number
   precoCusto?: number | null
   unidade?: string
@@ -30,6 +32,7 @@ export interface AtualizarProdutoInput {
   nome?: string
   codigoBarras?: string | null
   categoria?: string | null
+  laboratorio?: string | null
   precoVenda?: number
   precoCusto?: number | null
   unidade?: string
@@ -46,6 +49,7 @@ export class Produto {
   get nome() { return this.props.nome }
   get codigoBarras() { return this.props.codigoBarras }
   get categoria() { return this.props.categoria }
+  get laboratorio() { return this.props.laboratorio }
   get precoVenda() { return this.props.precoVenda }
   get precoCusto() { return this.props.precoCusto }
   get unidade() { return this.props.unidade }

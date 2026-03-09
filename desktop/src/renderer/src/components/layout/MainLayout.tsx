@@ -11,7 +11,7 @@ export function MainLayout() {
         nomeFarmacia={config?.nomeFarmacia}
         logoUrl={config?.logoUrl}
       />
-      <main className="flex-1 overflow-auto p-8">
+      <main className="flex-1 overflow-auto p-6">
         <Outlet />
       </main>
     </div>

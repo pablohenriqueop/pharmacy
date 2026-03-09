@@ -18,26 +18,27 @@ describe('ListarContasUseCase', () => {
   })
 
   it('deve listar todas as contas do tenant', async () => {
-    const contas = await sut.execute(TENANT)
-    expect(contas).toHaveLength(3)
+    const resultado = await sut.execute(TENANT)
+    expect(resultado.dados).toHaveLength(3)
+    expect(resultado.total).toBe(3)
   })
 
   it('deve filtrar por tipo', async () => {
     const pagar = await sut.execute(TENANT, { tipo: 'PAGAR' })
-    expect(pagar).toHaveLength(2)
+    expect(pagar.dados).toHaveLength(2)
 
     const receber = await sut.execute(TENANT, { tipo: 'RECEBER' })
-    expect(receber).toHaveLength(1)
+    expect(receber.dados).toHaveLength(1)
   })
 
   it('deve filtrar por status', async () => {
     await repo.pagar(TENANT, repo.items[0]!.id)
 
     const pagas = await sut.execute(TENANT, { status: 'PAGA' })
-    expect(pagas).toHaveLength(1)
+    expect(pagas.dados).toHaveLength(1)
 
     const pendentes = await sut.execute(TENANT, { status: 'PENDENTE' })
-    expect(pendentes).toHaveLength(2)
+    expect(pendentes.dados).toHaveLength(2)
   })
 
   it('deve filtrar por período de vencimento', async () => {
@@ -45,12 +46,22 @@ describe('ListarContasUseCase', () => {
       dataInicio: new Date('2026-03-10'),
       dataFim: new Date('2026-03-16'),
     })
-
-    expect(resultado).toHaveLength(2)
+    expect(resultado.dados).toHaveLength(2)
   })
 
   it('deve isolar por tenant', async () => {
     const resultado = await sut.execute('outro-tenant')
-    expect(resultado).toHaveLength(0)
+    expect(resultado.dados).toHaveLength(0)
+    expect(resultado.total).toBe(0)
+  })
+
+  it('deve paginar corretamente', async () => {
+    const pagina1 = await sut.execute(TENANT, undefined, { pagina: 1, porPagina: 2 })
+    expect(pagina1.dados).toHaveLength(2)
+    expect(pagina1.total).toBe(3)
+    expect(pagina1.totalPaginas).toBe(2)
+
+    const pagina2 = await sut.execute(TENANT, undefined, { pagina: 2, porPagina: 2 })
+    expect(pagina2.dados).toHaveLength(1)
   })
 })

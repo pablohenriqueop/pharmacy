@@ -42,12 +42,14 @@ describe('ListarVendasUseCase', () => {
   })
 
   it('deve listar vendas de um caixa específico', async () => {
-    const vendas = await sut.execute(TENANT, 'c1')
-    expect(vendas).toHaveLength(2)
+    const resultado = await sut.execute(TENANT, 'c1')
+    expect(resultado.dados).toHaveLength(2)
+    expect(resultado.total).toBe(2)
   })
 
   it('deve retornar lista vazia para caixa sem vendas', async () => {
-    const vendas = await sut.execute(TENANT, 'caixa-sem-vendas')
-    expect(vendas).toHaveLength(0)
+    const resultado = await sut.execute(TENANT, 'caixa-sem-vendas')
+    expect(resultado.dados).toHaveLength(0)
+    expect(resultado.total).toBe(0)
   })
 })

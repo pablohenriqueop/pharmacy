@@ -1,6 +1,8 @@
 import { Conta } from '@/domain/entities/Conta.ts'
 import type { CriarContaInput } from '@/domain/entities/Conta.ts'
 import type { IContaRepository, FiltroContas } from '@/application/repositories/IContaRepository.ts'
+import type { PaginacaoParams, ResultadoPaginado } from '@/domain/entities/Paginacao.ts'
+import { PAGINACAO_PADRAO } from '@/domain/entities/Paginacao.ts'
 
 export class InMemoryContaRepository implements IContaRepository {
   public items: Conta[] = []
@@ -28,7 +30,8 @@ export class InMemoryContaRepository implements IContaRepository {
     return this.items.find(c => c.tenantId === tenantId && c.id === id) ?? null
   }
 
-  async listar(tenantId: string, filtros?: FiltroContas): Promise<Conta[]> {
+  async listar(tenantId: string, filtros?: FiltroContas, paginacao?: PaginacaoParams): Promise<ResultadoPaginado<Conta>> {
+    const { pagina, porPagina } = paginacao ?? PAGINACAO_PADRAO
     let resultado = this.items.filter(c => c.tenantId === tenantId)
 
     if (filtros?.tipo) {
@@ -43,7 +46,17 @@ export class InMemoryContaRepository implements IContaRepository {
       )
     }
 
-    return resultado.sort((a, b) => a.dataVencimento.getTime() - b.dataVencimento.getTime())
+    resultado.sort((a, b) => a.dataVencimento.getTime() - b.dataVencimento.getTime())
+    const total = resultado.length
+    const dados = resultado.slice((pagina - 1) * porPagina, pagina * porPagina)
+
+    return {
+      dados,
+      total,
+      pagina,
+      porPagina,
+      totalPaginas: Math.ceil(total / porPagina),
+    }
   }
 
   async pagar(tenantId: string, id: string): Promise<Conta | null> {

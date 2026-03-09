@@ -2,36 +2,42 @@ import { useEffect } from 'react'
 
 type AtalhoMap = Record<string, () => void>
 
+// Mapeia e.code → chave do atalho (para teclas que variam entre layouts)
+const CODE_MAP: Record<string, string> = {
+  Slash: '/',
+  NumpadDivide: '/',
+}
+
 export function useAtalhos(atalhos: AtalhoMap) {
   useEffect(() => {
     function handler(e: KeyboardEvent) {
-      const key = e.key
-      const callback = atalhos[key]
+      // Tenta match por e.key primeiro, depois por e.code
+      const key = atalhos[e.key] ? e.key : (CODE_MAP[e.code] && atalhos[CODE_MAP[e.code]] ? CODE_MAP[e.code] : null)
 
-      if (callback) {
-        // Não intercepta se estiver num input e a tecla for Enter/Esc
-        const target = e.target as HTMLElement
-        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+      if (!key) return
 
-        // F-keys sempre funcionam
-        if (key.startsWith('F')) {
-          e.preventDefault()
-          callback()
-          return
-        }
+      const callback = atalhos[key]!
+      const target = e.target as HTMLElement
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
 
-        // Escape sempre funciona
-        if (key === 'Escape') {
-          e.preventDefault()
-          callback()
-          return
-        }
+      // F-keys e Escape sempre funcionam
+      if (key.startsWith('F') || key === 'Escape') {
+        e.preventDefault()
+        callback()
+        return
+      }
 
-        // Outras teclas só se não estiver num input
-        if (!isInput) {
-          e.preventDefault()
-          callback()
-        }
+      // '/' sempre funciona (foca busca — previne digitação)
+      if (key === '/') {
+        e.preventDefault()
+        callback()
+        return
+      }
+
+      // Outras teclas só se não estiver num input
+      if (!isInput) {
+        e.preventDefault()
+        callback()
       }
     }
 

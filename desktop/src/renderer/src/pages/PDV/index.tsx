@@ -1,15 +1,15 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
-import { ShoppingCart, AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { BuscaProduto } from './BuscaProduto'
 import { Carrinho } from './Carrinho'
 import { ResumoVenda } from './ResumoVenda'
 import { ModalPagamento } from './ModalPagamento'
 import { useCarrinhoStore } from '@/stores/carrinhoStore'
-import { useToastStore } from '@/stores/toastStore'
+import { useFeedbackStore } from '@/stores/feedbackStore'
 import { useCaixaAberto } from '@/hooks/useCaixa'
 import { useCriarVenda } from '@/hooks/useVenda'
 import { useAtalhos } from '@/hooks/useAtalhos'
-import { cn } from '@/lib/utils'
+import { formatarMoeda } from '@/lib/utils'
 import type { FormaPagamento } from '@shared/venda'
 
 export function PDV() {
@@ -23,7 +23,7 @@ export function PDV() {
 
   const { data: caixa, isLoading: caixaLoading } = useCaixaAberto()
   const criarVenda = useCriarVenda()
-  const toast = useToastStore((s) => s.show)
+  const feedback = useFeedbackStore((s) => s.show)
 
   const novaVenda = useCallback(() => {
     limpar()
@@ -32,15 +32,15 @@ export function PDV() {
 
   const abrirPagamento = useCallback(() => {
     if (itens.length === 0) {
-      toast('error', 'Adicione pelo menos um produto')
+      feedback('error', 'Adicione pelo menos um produto')
       return
     }
     if (!caixa) {
-      toast('error', 'Nenhum caixa aberto. Abra um caixa primeiro.')
+      feedback('error', 'Nenhum caixa aberto. Abra um caixa primeiro.')
       return
     }
     setModalPagamento(true)
-  }, [itens.length, caixa, toast])
+  }, [itens.length, caixa, feedback])
 
   const confirmarPagamento = useCallback(
     async (forma: FormaPagamento, valorPago?: number) => {
@@ -61,18 +61,18 @@ export function PDV() {
 
         const trocoMsg =
           forma === 'DINHEIRO' && venda.troco && venda.troco > 0
-            ? ` · Troco: R$ ${Number(venda.troco).toFixed(2)}`
+            ? ` · Troco: ${formatarMoeda(venda.troco)}`
             : ''
 
-        toast('success', `Venda finalizada! Total: R$ ${Number(venda.total).toFixed(2)}${trocoMsg}`)
+        feedback('success', `Venda finalizada! Total: ${formatarMoeda(venda.total)}${trocoMsg}`)
         setModalPagamento(false)
         limpar()
         inputRef.current?.focus()
       } catch {
-        toast('error', 'Erro ao finalizar venda. Tente novamente.')
+        feedback('error', 'Erro ao finalizar venda. Tente novamente.')
       }
     },
-    [caixa, criarVenda, desconto, itens, limpar, toast],
+    [caixa, criarVenda, desconto, itens, limpar, feedback],
   )
 
   const atalhos = useMemo(
@@ -103,8 +103,8 @@ export function PDV() {
   if (!caixa) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
-        <AlertTriangle size={48} className="text-warning" />
-        <h2 className="text-2xl font-bold">Nenhum caixa aberto</h2>
+        <AlertTriangle size={56} className="text-warning" />
+        <h2 className="text-3xl font-bold">Nenhum caixa aberto</h2>
         <p className="text-muted-foreground text-lg">
           Abra um caixa na página "Caixa" para começar a vender.
         </p>
@@ -113,58 +113,60 @@ export function PDV() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6">
-      {/* Header com atalhos */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ShoppingCart size={24} className="text-primary" />
-          <h2 className="text-2xl font-bold">Ponto de Venda</h2>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <kbd className="px-2 py-1 bg-muted rounded font-mono text-xs">F2</kbd>
-          <span>Nova venda</span>
-          <span className="mx-2">·</span>
-          <kbd className="px-2 py-1 bg-muted rounded font-mono text-xs">F10</kbd>
-          <span>Finalizar</span>
-          <span className="mx-2">·</span>
-          <kbd className="px-2 py-1 bg-muted rounded font-mono text-xs">Esc</kbd>
-          <span>Cancelar</span>
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Busca — topo */}
+      <div className="mb-4">
+        <BuscaProduto inputRef={inputRef} />
       </div>
 
-      {/* Busca */}
-      <BuscaProduto inputRef={inputRef} />
-
-      {/* Carrinho + Resumo */}
-      <div className="flex-1 bg-white rounded-xl border border-border shadow-md flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b border-border bg-muted/30">
-          <h3 className="font-semibold text-base text-muted-foreground">
-            Itens da Venda
-          </h3>
+      {/* Corpo: Carrinho (esquerda) + Resumo (direita) */}
+      <div className="flex-1 flex gap-4 min-h-0">
+        {/* Carrinho — ocupa 2/3 */}
+        <div className="flex-1 bg-white rounded-xl border border-border shadow-md flex flex-col overflow-hidden">
+          <div className="px-5 py-3 border-b border-border bg-muted/40 flex items-center justify-between">
+            <h3 className="font-bold text-base uppercase tracking-wide text-muted-foreground">
+              Itens da Venda
+            </h3>
+            <span className="text-sm text-muted-foreground font-medium">
+              {itens.length} {itens.length === 1 ? 'item' : 'itens'}
+            </span>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <Carrinho />
+          </div>
         </div>
 
-        <div className="flex-1 overflow-auto px-2">
-          <Carrinho />
-        </div>
-
-        <div className="px-6 pb-5">
+        {/* Painel direito — resumo + botão */}
+        <div className="w-80 flex flex-col gap-4">
           <ResumoVenda />
+
+          {/* Botão Finalizar */}
+          <button
+            onClick={abrirPagamento}
+            disabled={itens.length === 0}
+            className={
+              itens.length > 0
+                ? 'h-16 rounded-xl text-xl font-bold bg-success text-white shadow-lg hover:bg-success/90 hover:shadow-xl active:scale-[0.99] transition-all'
+                : 'h-16 rounded-xl text-xl font-bold bg-muted text-muted-foreground cursor-not-allowed'
+            }
+          >
+            Finalizar (F10)
+          </button>
         </div>
       </div>
 
-      {/* Botão Finalizar */}
-      <button
-        onClick={abrirPagamento}
-        disabled={itens.length === 0}
-        className={cn(
-          'h-16 rounded-xl text-xl font-bold transition-all shadow-md',
-          itens.length > 0
-            ? 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg active:scale-[0.99]'
-            : 'bg-muted text-muted-foreground cursor-not-allowed',
-        )}
-      >
-        Finalizar Venda — R$ {totalLiquido().toFixed(2)} (F10)
-      </button>
+      {/* Barra de atalhos — rodapé fixo */}
+      <div className="mt-4 flex items-center gap-6 bg-foreground/[0.03] border border-border rounded-xl px-6 py-2.5">
+        <Atalho tecla="F2" descricao="Nova venda" />
+        <div className="w-px h-5 bg-border" />
+        <Atalho tecla="F10" descricao="Finalizar" />
+        <div className="w-px h-5 bg-border" />
+        <Atalho tecla="Esc" descricao="Cancelar" />
+        <div className="flex-1" />
+        <span className="text-sm text-muted-foreground font-medium tabular-nums">
+          Total: <span className="text-foreground font-bold text-lg">{formatarMoeda(totalLiquido())}</span>
+        </span>
+      </div>
 
       {/* Modal de Pagamento */}
       <ModalPagamento
@@ -173,6 +175,17 @@ export function PDV() {
         onConfirmar={confirmarPagamento}
         carregando={criarVenda.isPending}
       />
+    </div>
+  )
+}
+
+function Atalho({ tecla, descricao }: { tecla: string; descricao: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <kbd className="px-2.5 py-1 bg-primary/10 text-primary rounded font-mono text-xs font-bold border border-primary/20 min-w-[2rem] text-center">
+        {tecla}
+      </kbd>
+      <span className="text-sm text-muted-foreground">{descricao}</span>
     </div>
   )
 }

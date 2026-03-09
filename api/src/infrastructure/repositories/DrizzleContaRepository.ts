@@ -1,9 +1,11 @@
-import { eq, and, between } from 'drizzle-orm'
+import { eq, and, between, sql } from 'drizzle-orm'
 import { db } from '@/infrastructure/db/connection.ts'
 import { contas } from '@/infrastructure/db/schema.ts'
 import { Conta } from '@/domain/entities/Conta.ts'
 import type { CriarContaInput, TipoConta, StatusConta } from '@/domain/entities/Conta.ts'
 import type { IContaRepository, FiltroContas } from '@/application/repositories/IContaRepository.ts'
+import type { PaginacaoParams, ResultadoPaginado } from '@/domain/entities/Paginacao.ts'
+import { PAGINACAO_PADRAO } from '@/domain/entities/Paginacao.ts'
 
 function toConta(row: typeof contas.$inferSelect): Conta {
   return new Conta({
@@ -45,7 +47,8 @@ export class DrizzleContaRepository implements IContaRepository {
     return row ? toConta(row) : null
   }
 
-  async listar(tenantId: string, filtros?: FiltroContas): Promise<Conta[]> {
+  async listar(tenantId: string, filtros?: FiltroContas, paginacao?: PaginacaoParams): Promise<ResultadoPaginado<Conta>> {
+    const { pagina, porPagina } = paginacao ?? PAGINACAO_PADRAO
     const conditions = [eq(contas.tenantId, tenantId)]
 
     if (filtros?.tipo) {
@@ -59,12 +62,24 @@ export class DrizzleContaRepository implements IContaRepository {
     }
 
     const rows = await db
-      .select()
+      .select({
+        data: contas,
+        total: sql<number>`COUNT(*) OVER()`.as('total'),
+      })
       .from(contas)
       .where(and(...conditions))
       .orderBy(contas.dataVencimento)
+      .limit(porPagina)
+      .offset((pagina - 1) * porPagina)
 
-    return rows.map(toConta)
+    const total = rows[0]?.total ?? 0
+    return {
+      dados: rows.map(r => toConta(r.data)),
+      total,
+      pagina,
+      porPagina,
+      totalPaginas: Math.ceil(total / porPagina),
+    }
   }
 
   async pagar(tenantId: string, id: string): Promise<Conta | null> {

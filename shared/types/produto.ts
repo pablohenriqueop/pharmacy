@@ -4,6 +4,7 @@ export interface ProdutoResponse {
   nome: string
   codigoBarras: string | null
   categoria: string | null
+  laboratorio: string | null
   precoVenda: number
   precoCusto: number | null
   unidade: string
@@ -19,6 +20,7 @@ export interface CriarProdutoRequest {
   precoVenda: number
   codigoBarras?: string
   categoria?: string
+  laboratorio?: string
   precoCusto?: number
   unidade?: string
   estoqueAtual?: number
@@ -31,6 +33,7 @@ export interface AtualizarProdutoRequest {
   precoCusto?: number
   codigoBarras?: string
   categoria?: string
+  laboratorio?: string
   unidade?: string
   estoqueAtual?: number
   estoqueMinimo?: number

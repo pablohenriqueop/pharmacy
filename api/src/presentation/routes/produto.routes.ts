@@ -5,8 +5,10 @@ import { BuscarProdutoUseCase } from '@/application/use-cases/produto/BuscarProd
 import { ListarProdutosUseCase } from '@/application/use-cases/produto/ListarProdutosUseCase.ts'
 import { AtualizarProdutoUseCase } from '@/application/use-cases/produto/AtualizarProdutoUseCase.ts'
 import { DrizzleProdutoRepository } from '@/infrastructure/repositories/DrizzleProdutoRepository.ts'
-import { requirePermission } from '@/presentation/middleware/rbacMiddleware.ts'
+import { requirePermission, requirePin } from '@/presentation/middleware/authMiddleware.ts'
 import { auditService } from '@/infrastructure/services/AuditService.ts'
+import { produtoCache } from '@/infrastructure/cache/ProdutoCache.ts'
+import { paginacaoSchema } from '@/presentation/schemas/paginacao.ts'
 
 const repo = new DrizzleProdutoRepository()
 const cadastrar = new CadastrarProdutoUseCase(repo)
@@ -41,12 +43,14 @@ const listarFiltrosSchema = z.object({
   nome: z.string().optional(),
   categoria: z.string().optional(),
   ativo: z.coerce.boolean().optional(),
-})
+}).merge(paginacaoSchema)
 
 export async function produtoRoutes(app: FastifyInstance) {
   app.post('/produtos', { preHandler: [requirePermission({ produto: ['create'] })] }, async (request, reply) => {
     const body = criarProdutoSchema.parse(request.body)
     const produto = await cadastrar.execute({ ...body, tenantId: request.tenantId })
+
+    produtoCache.invalidar(request.tenantId)
 
     await auditService.registrar({
       tenantId: request.tenantId,
@@ -61,11 +65,10 @@ export async function produtoRoutes(app: FastifyInstance) {
     return reply.status(201).send(produto.props)
   })
 
-  app.get('/produtos', { preHandler: [requirePermission({ produto: ['read'] })] }, async (request, reply) => {
-    const filtros = listarFiltrosSchema.parse(request.query)
-    const produtos = await listar.execute(request.tenantId, filtros)
+  // Catálogo completo (cache em memória) — usado pelo PDV para busca instantânea
+  app.get('/produtos/catalogo', { preHandler: [requirePermission({ produto: ['read'] })] }, async (request, reply) => {
+    const produtos = await produtoCache.getCatalogo(request.tenantId, repo)
 
-    // Operador não vê preço de custo
     const resultado = produtos.map(p => {
       const props = { ...p.props }
       if (request.user.role === 'operador') {
@@ -74,7 +77,24 @@ export async function produtoRoutes(app: FastifyInstance) {
       return props
     })
 
+    reply.header('Cache-Control', 'private, max-age=60')
     return reply.send(resultado)
+  })
+
+  app.get('/produtos', { preHandler: [requirePermission({ produto: ['read'] })] }, async (request, reply) => {
+    const { pagina, porPagina, ...filtros } = listarFiltrosSchema.parse(request.query)
+    const resultado = await listar.execute(request.tenantId, filtros, { pagina, porPagina })
+
+    // Operador não vê preço de custo
+    const dados = resultado.dados.map(p => {
+      const props = { ...p.props }
+      if (request.user.role === 'operador') {
+        props.precoCusto = null
+      }
+      return props
+    })
+
+    return reply.send({ ...resultado, dados })
   })
 
   app.get('/produtos/:id', { preHandler: [requirePermission({ produto: ['read'] })] }, async (request, reply) => {
@@ -106,6 +126,8 @@ export async function produtoRoutes(app: FastifyInstance) {
     const body = atualizarProdutoSchema.parse(request.body)
     const produto = await atualizar.execute(request.tenantId, id, body)
 
+    produtoCache.invalidar(request.tenantId)
+
     await auditService.registrar({
       tenantId: request.tenantId,
       userId: request.user.id,
@@ -119,9 +141,11 @@ export async function produtoRoutes(app: FastifyInstance) {
     return reply.send(produto.props)
   })
 
-  app.delete('/produtos/:id', { preHandler: [requirePermission({ produto: ['delete'] })] }, async (request, reply) => {
+  app.delete('/produtos/:id', { preHandler: [requirePermission({ produto: ['delete'] }), requirePin()] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     await atualizar.execute(request.tenantId, id, { ativo: false })
+
+    produtoCache.invalidar(request.tenantId)
 
     await auditService.registrar({
       tenantId: request.tenantId,

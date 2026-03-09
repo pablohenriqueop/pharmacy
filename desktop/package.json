@@ -10,7 +10,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.1.1",
+    "@fontsource/roboto": "^5.2.10",
     "@hookform/resolvers": "^5.0.1",
     "@tanstack/react-query": "^5.80.7",
     "axios": "^1.9.0",

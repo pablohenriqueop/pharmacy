@@ -19,6 +19,7 @@ export const user = pgTable('user', {
   emailVerified:  boolean('email_verified').notNull(),
   image:          text('image'),
   role:           text('role'),
+  pinHash:        text('pin_hash'),
   banned:         boolean('banned').default(false),
   banReason:      text('ban_reason'),
   banExpires:     timestamp('ban_expires'),
@@ -80,12 +81,22 @@ export const auditLogs = pgTable('audit_logs', {
 
 // ==================== Business Tables ====================
 
+export const categorias = pgTable('categorias', {
+  id:        uuid('id').defaultRandom().primaryKey(),
+  tenantId:  uuid('tenant_id').notNull(),
+  nome:      varchar('nome', { length: 100 }).notNull(),
+  ativo:     boolean('ativo').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
 export const produtos = pgTable('produtos', {
   id:            uuid('id').defaultRandom().primaryKey(),
   tenantId:      uuid('tenant_id').notNull(),
   nome:          varchar('nome', { length: 255 }).notNull(),
   codigoBarras:  varchar('codigo_barras', { length: 50 }),
   categoria:     varchar('categoria', { length: 100 }),
+  laboratorio:   varchar('laboratorio', { length: 150 }),
   precoVenda:    numeric('preco_venda', { precision: 10, scale: 2 }).notNull(),
   precoCusto:    numeric('preco_custo', { precision: 10, scale: 2 }),
   unidade:       varchar('unidade', { length: 10 }).default('UN').notNull(),

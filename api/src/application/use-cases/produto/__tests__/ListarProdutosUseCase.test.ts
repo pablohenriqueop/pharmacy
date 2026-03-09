@@ -18,33 +18,47 @@ describe('ListarProdutosUseCase', () => {
   })
 
   it('deve listar todos os produtos do tenant', async () => {
-    const produtos = await sut.execute(TENANT)
-    expect(produtos).toHaveLength(3)
+    const resultado = await sut.execute(TENANT)
+    expect(resultado.dados).toHaveLength(3)
+    expect(resultado.total).toBe(3)
+    expect(resultado.pagina).toBe(1)
+    expect(resultado.porPagina).toBe(30)
   })
 
   it('deve filtrar por nome parcial', async () => {
-    const produtos = await sut.execute(TENANT, { nome: 'dipirona' })
-    expect(produtos).toHaveLength(2)
+    const resultado = await sut.execute(TENANT, { nome: 'dipirona' })
+    expect(resultado.dados).toHaveLength(2)
   })
 
   it('deve filtrar por categoria', async () => {
-    const produtos = await sut.execute(TENANT, { categoria: 'Analgésicos' })
-    expect(produtos).toHaveLength(2)
+    const resultado = await sut.execute(TENANT, { categoria: 'Analgésicos' })
+    expect(resultado.dados).toHaveLength(2)
   })
 
   it('deve filtrar por ativo', async () => {
     await repo.desativar(TENANT, repo.items[0]!.id)
 
     const ativos = await sut.execute(TENANT, { ativo: true })
-    expect(ativos).toHaveLength(2)
+    expect(ativos.dados).toHaveLength(2)
 
     const inativos = await sut.execute(TENANT, { ativo: false })
-    expect(inativos).toHaveLength(1)
+    expect(inativos.dados).toHaveLength(1)
   })
 
   it('não deve retornar produtos de outro tenant', async () => {
     const outroTenant = '00000000-0000-0000-0000-000000000002'
-    const produtos = await sut.execute(outroTenant)
-    expect(produtos).toHaveLength(0)
+    const resultado = await sut.execute(outroTenant)
+    expect(resultado.dados).toHaveLength(0)
+    expect(resultado.total).toBe(0)
+  })
+
+  it('deve paginar corretamente', async () => {
+    const pagina1 = await sut.execute(TENANT, undefined, { pagina: 1, porPagina: 2 })
+    expect(pagina1.dados).toHaveLength(2)
+    expect(pagina1.total).toBe(3)
+    expect(pagina1.totalPaginas).toBe(2)
+
+    const pagina2 = await sut.execute(TENANT, undefined, { pagina: 2, porPagina: 2 })
+    expect(pagina2.dados).toHaveLength(1)
   })
 })

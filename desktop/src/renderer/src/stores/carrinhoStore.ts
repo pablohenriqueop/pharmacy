@@ -4,6 +4,7 @@ export interface ItemCarrinho {
   produtoId: string
   nome: string
   codigoBarras: string | null
+  laboratorio: string | null
   precoUnit: number
   quantidade: number
   subtotal: number
@@ -13,7 +14,7 @@ interface CarrinhoState {
   itens: ItemCarrinho[]
   desconto: number
 
-  adicionarItem: (produto: { id: string; nome: string; codigoBarras: string | null; precoVenda: number }, quantidade?: number) => void
+  adicionarItem: (produto: { id: string; nome: string; codigoBarras: string | null; laboratorio: string | null; precoVenda: number }, quantidade?: number) => void
   removerItem: (produtoId: string) => void
   alterarQuantidade: (produtoId: string, quantidade: number) => void
   setDesconto: (valor: number) => void
@@ -53,6 +54,7 @@ export const useCarrinhoStore = create<CarrinhoState>((set, get) => ({
             produtoId: produto.id,
             nome: produto.nome,
             codigoBarras: produto.codigoBarras,
+            laboratorio: produto.laboratorio,
             precoUnit: produto.precoVenda,
             quantidade,
             subtotal: produto.precoVenda * quantidade,
