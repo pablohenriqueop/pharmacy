@@ -7,13 +7,13 @@ import { Produto } from '@/domain/entities/Produto.ts'
 const TENANT = '00000000-0000-0000-0000-000000000001'
 
 const produtoA = new Produto({
-  id: 'p1', tenantId: TENANT, nome: 'Dipirona', codigoBarras: null, categoria: 'Analgésicos',
+  id: 'p1', tenantId: TENANT, nome: 'Dipirona', codigoBarras: null, categoria: 'Analgésicos', laboratorio: null,
   precoVenda: 8.5, precoCusto: 4, unidade: 'UN', estoqueAtual: 50, estoqueMinimo: 5, ativo: true,
   createdAt: new Date(), updatedAt: new Date(),
 })
 
 const produtoB = new Produto({
-  id: 'p2', tenantId: TENANT, nome: 'Ibuprofeno', codigoBarras: null, categoria: 'Anti-inflamatórios',
+  id: 'p2', tenantId: TENANT, nome: 'Ibuprofeno', codigoBarras: null, categoria: 'Anti-inflamatórios', laboratorio: null,
   precoVenda: 12, precoCusto: 6, unidade: 'UN', estoqueAtual: 30, estoqueMinimo: 5, ativo: true,
   createdAt: new Date(), updatedAt: new Date(),
 })

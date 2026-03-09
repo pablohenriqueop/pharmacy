@@ -8,6 +8,7 @@ describe('Produto', () => {
     nome: 'Dipirona 500mg',
     codigoBarras: '7891234567890',
     categoria: 'Analgésicos',
+    laboratorio: null,
     precoVenda: 8.5,
     precoCusto: 4.0,
     unidade: 'UN',

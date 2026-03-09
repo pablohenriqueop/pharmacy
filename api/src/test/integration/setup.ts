@@ -40,8 +40,8 @@ export async function buildTestApp(options: TestAppOptions = {}): Promise<Fastif
   const user: SessionUser = { ...defaultUser, ...options.user }
 
   // Middleware fake de auth — injeta user e tenantId sem BetterAuth
-  app.decorateRequest('user', null)
-  app.decorateRequest('tenantId', null)
+  app.decorateRequest('user', null as unknown as SessionUser)
+  app.decorateRequest('tenantId', null as unknown as string)
 
   app.addHook('onRequest', async (request) => {
     request.user = user

@@ -8,7 +8,7 @@ const TENANT = '00000000-0000-0000-0000-000000000001'
 function criarProduto(overrides: Partial<Produto['props']> = {}): Produto {
   return new Produto({
     id: crypto.randomUUID(), tenantId: TENANT, nome: 'Produto',
-    codigoBarras: null, categoria: null, precoVenda: 10, precoCusto: 5,
+    codigoBarras: null, categoria: null, laboratorio: null, precoVenda: 10, precoCusto: 5,
     unidade: 'UN', estoqueAtual: 50, estoqueMinimo: 5, ativo: true,
     createdAt: new Date(), updatedAt: new Date(),
     ...overrides,
